@@ -12,8 +12,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class UserController {
     //change injection
-    @Autowired
     private UserService service;
+
+    @Autowired
+    public UserController(UserService service){
+        this.service = service;
+    }
+
 
     //change register form by adding email -> change database
     @PostMapping("/register")
@@ -27,7 +32,7 @@ public class UserController {
 
     //logout
     @PostMapping("/logout")
-    public String logout(@RequestBody Users user){
+    public String logout(){
         return "";
     }
 

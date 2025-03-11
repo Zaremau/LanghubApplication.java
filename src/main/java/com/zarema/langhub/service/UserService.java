@@ -12,14 +12,17 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
-    @Autowired
     private UserRepo repo;
-
-    @Autowired
     AuthenticationManager authManager;
+    private JWTService jwtService;
 
     @Autowired
-    private JWTService jwtService;
+    public UserService(UserRepo repo, AuthenticationManager authManager, JWTService jwtService){
+        this.repo = repo;
+        this.authManager = authManager;
+        this.jwtService = jwtService;
+    }
+
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
