@@ -3,6 +3,7 @@ package com.zarema.langhub.filters;
 
 import com.zarema.langhub.service.JWTService;
 import com.zarema.langhub.service.MyUserDetailsService;
+import com.zarema.langhub.token.TokenRepo;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,11 +23,13 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private JWTService jwtService;
     ApplicationContext context;
+    private TokenRepo tokenRepo;
 
     @Autowired
-    public JwtFilter(JWTService jwtService, ApplicationContext context){
+    public JwtFilter(JWTService jwtService, ApplicationContext context, TokenRepo tokenRepo){
         this.jwtService = jwtService;
         this.context = context;
+        this.tokenRepo = tokenRepo;
     }
 
     @Override
@@ -43,7 +46,10 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = context.getBean(MyUserDetailsService.class).loadUserByUsername(username);
-            if (jwtService.validateToken(token, userDetails)) {
+            boolean isTokenValid = tokenRepo.findByToken(token)
+                    .map(t -> !t.isExpired() && !t.isRevoked())
+                    .orElse(false);
+            if (jwtService.validateToken(token, userDetails) && isTokenValid) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource()
                         .buildDetails(request));
