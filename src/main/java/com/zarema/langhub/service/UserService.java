@@ -7,7 +7,6 @@ import com.zarema.langhub.repo.UserRepo;
 import com.zarema.langhub.token.Token;
 import com.zarema.langhub.token.TokenRepo;
 import com.zarema.langhub.token.TokenType;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,27 +16,27 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
-    private UserRepo repo;
-    private TokenRepo tokenRepo;
+    private final UserRepo userRepo;
+    private final TokenRepo tokenRepo;
     AuthenticationManager authManager;
-    private JWTService jwtService;
+    private final JWTService jwtService;
 
     @Autowired
     public UserService(UserRepo repo, TokenRepo tokenRepo, AuthenticationManager authManager,
                        JWTService jwtService, JwtFilter jwtFilter){
-        this.repo = repo;
+        this.userRepo = repo;
         this.tokenRepo = tokenRepo;
         this.authManager = authManager;
         this.jwtService = jwtService;
     }
 
 
-    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
     public Users register(Users user){
         user.setPassword(encoder.encode(user.getPassword()));
         var jwtToken = jwtService.generateToken(user.getUsername());
-        repo.save(user);
+        userRepo.save(user);
         saveUserToken(user, jwtToken);
         return user;
     }
@@ -56,25 +55,16 @@ public class UserService {
     }
 
     public Users updateAccount(Users user) {
-        Users user1 = repo.findById(user.getId());
+        Users user1 = userRepo.findById(user.getId());
         user1.setUsername(user.getUsername());
         user1.setEmail(user.getEmail());
         user1.setPassword(encoder.encode(user.getPassword()));
         user1.setLanguage(user.getLanguage());
-        return repo.save(user1);
+        return userRepo.save(user1);
     }
 
-    public Users getAccount(HttpServletRequest request) {
-        String authHeader = request.getHeader("Authorization");
-        String token = null;
-        String username = null;
-
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
-            username = jwtService.extractUserName(token);
-            return repo.findByUsername(username);
-        }
-        return new Users();
+    public Users getAccount(Users user) {
+      return userRepo.findByUsername(user.getUsername());
     }
 
     private void revokeAllUserTokens(Users user){

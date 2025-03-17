@@ -44,17 +44,16 @@ public class SecurityConfig {
 
          http.csrf(customizer -> customizer.disable()).
                 authorizeHttpRequests(request -> request
-                        .requestMatchers("login", "register").permitAll()
+                        .requestMatchers("login", "register", "logout").permitAll()
                         .anyRequest().authenticated())
                  .httpBasic(Customizer.withDefaults()).
                 sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .logout((httpSecurityLogoutConfigurer ->
-                        httpSecurityLogoutConfigurer.logoutUrl("/logout")
+                        httpSecurityLogoutConfigurer.logoutUrl("/api/logout")
                                 .addLogoutHandler(logoutHandler)
                                 .logoutSuccessHandler(
-                                        new HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK))
-                                .permitAll()));
+                                        new HttpStatusReturningLogoutSuccessHandler(HttpStatus.OK))));
 
         return http.build();
     }

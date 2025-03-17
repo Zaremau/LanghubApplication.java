@@ -22,31 +22,22 @@ public class UserController {
 
 
 
-    @PostMapping("/register")
+    @PostMapping("/api/register")
     public ResponseEntity<Users> register(@Valid @RequestBody Users user){
         return new ResponseEntity<>(service.register(user), HttpStatus.OK);
     }
-    @PostMapping("/login")
+    @PostMapping("/api/login")
     public ResponseEntity<String> login(@RequestBody Users user){
         return new ResponseEntity<>(service.verify(user), HttpStatus.OK);
     }
 
-    @GetMapping("/account")
-    public ResponseEntity<Users> getAccount(HttpServletRequest request){
-        Users user = service.getAccount(request);
-        if(user.getUsername() != null)
-            return new ResponseEntity<>(user, HttpStatus.OK);
-        else return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    @GetMapping("/api/account")
+    public ResponseEntity<Users> getAccount(@RequestBody Users user){
+        return new ResponseEntity<>(service.getAccount(user), HttpStatus.OK);
     }
 
-    @PutMapping("/account")
+    @PutMapping("/api/account")
     public ResponseEntity<Users> updateAccount(@RequestBody Users user){
         return new ResponseEntity<>(service.updateAccount(user), HttpStatus.OK);
-    }
-
-    //logout
-    @PostMapping("/logout")
-    public String logout(){
-        return "";
     }
 }
