@@ -14,6 +14,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
+import java.util.Optional;
+
 @Service
 public class UserService {
     private final UserRepo userRepo;
@@ -87,5 +90,9 @@ public class UserService {
                 .expired(false)
                 .build();
         tokenRepo.save(token);
+    }
+
+    public Optional<Users> findPrinciple(Principal principal) {
+        return Optional.ofNullable(userRepo.findByUsername(principal.getName()));
     }
 }

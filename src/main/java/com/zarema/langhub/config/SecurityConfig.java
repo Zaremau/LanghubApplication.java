@@ -45,6 +45,7 @@ public class SecurityConfig {
          http.csrf(customizer -> customizer.disable()).
                 authorizeHttpRequests(request -> request
                         .requestMatchers("login", "register", "logout").permitAll()
+                        .requestMatchers("/rss/**").permitAll()
                         .anyRequest().authenticated())
                  .httpBasic(Customizer.withDefaults()).
                 sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
