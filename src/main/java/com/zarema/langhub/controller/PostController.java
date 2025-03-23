@@ -6,6 +6,7 @@ import com.zarema.langhub.service.FileService;
 import com.zarema.langhub.service.PostService;
 import com.zarema.langhub.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,9 +33,12 @@ public class PostController {
         return new ResponseEntity<>(postService.getPost(id, model).get(), HttpStatus.OK);
     }
 
-    @PostMapping("/posts/{id}")
+    @PutMapping("/posts/{id}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<String> updatePost(@PathVariable Integer id, Post post, @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<Post> updatePost(
+            @PathVariable Integer id,
+            @ModelAttribute Post post,
+            @RequestParam(value = "file", required = false) MultipartFile file) {
         try {
             return new ResponseEntity<>(postService.updatePost(id, post, file), HttpStatus.OK);
         } catch (Exception e) {
@@ -44,26 +48,27 @@ public class PostController {
 
     @GetMapping("/posts/new")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<String> createNewPost(Model model) {
+    public ResponseEntity<Model> createNewPost(Model model) {
         return new ResponseEntity<>(postService.getCreateNewPost(model), HttpStatus.OK);
     }
 
     @PostMapping("/posts/new")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<String> createNewPost(@ModelAttribute Post post, @RequestParam("file") MultipartFile file, Principal principal) {
+    public ResponseEntity<Post> createNewPost(@ModelAttribute Post post, @RequestParam("file") MultipartFile file, Principal principal) {
         return new ResponseEntity<>(postService.createNewPost(post, file, principal), HttpStatus.OK);
     }
 
     @GetMapping("/posts/{id}/edit")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<String> getPostForEdit(@PathVariable Integer id, Model model) {
+    public ResponseEntity<Model> getPostForEdit(@PathVariable Integer id, Model model) {
         return new ResponseEntity<>(postService.getPostForEdit(id, model), HttpStatus.OK);
     }
 
-    @GetMapping("/posts/{id}/delete")
+    @DeleteMapping("/posts/{id}/delete")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<String> deletePost(@PathVariable Integer id) {
-        return new ResponseEntity<>(postService.deletePost(id), HttpStatus.OK);
+    public ResponseEntity<Void> deletePost(@PathVariable Integer id) {
+        postService.deletePost(id);
+        return new ResponseEntity<Void>(HttpStatus.OK);
     }
 
 }

@@ -6,6 +6,7 @@ import com.zarema.langhub.model.Users;
 import com.zarema.langhub.repo.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -44,40 +45,35 @@ public class PostService {
         return Optional.ofNullable(Optional.of(model.addAttribute("post", post)).orElseThrow(() -> new NoSuchElementException("No such post")));
 
     }
-    public String updatePost(Integer id, Post post, MultipartFile file) throws Exception {
-
+    public Post updatePost(Integer id, Post post, MultipartFile file) throws Exception {
         Optional<Post> optionalPost = postRepository.findById(id);
-        if (optionalPost.isPresent()) {
-            Post existingPost = optionalPost.get();
-
-            existingPost.setTitle(post.getTitle());
-            existingPost.setBody(post.getBody());
-
-            try {
-                fileService.save(file);
-                existingPost.setImageFilePath(file.getOriginalFilename());
-            } catch (Exception e) {
-               throw new Exception();
-            }
-
-            if (existingPost.getId() == null) {
-                existingPost.setCreatedAt(LocalDateTime.now());
-            }
-            post.setUpdatedAt(LocalDateTime.now());
-            postRepository.save(existingPost);
+        if (optionalPost.isEmpty()) {
+            throw new Exception("Post not found");
         }
 
-        return "redirect:/posts/" + post.getId();
+        Post existingPost = optionalPost.get();
+
+        existingPost.setTitle(post.getTitle());
+        existingPost.setBody(post.getBody());
+
+        if (file != null && !file.isEmpty()) {
+            fileService.save(file);
+            existingPost.setImageFilePath(file.getOriginalFilename());
+        }
+
+        existingPost.setUpdatedAt(LocalDateTime.now());
+       return postRepository.save(existingPost);
+
+        //return "redirect:/posts/" + existingPost.getId();
     }
 
-    public String getCreateNewPost(Model model) {
+    public Model getCreateNewPost(Model model) {
 
         Post post = new Post();
-        model.addAttribute("post", post);
-        return "post_new";
+        return model.addAttribute("post", post);
     }
 
-    public String createNewPost(Post post, MultipartFile file, Principal principal) {
+    public Post createNewPost(Post post, MultipartFile file, Principal principal) {
         String authUsername = "anonymousUser";
         if (principal != null) {
             authUsername = principal.getName();
@@ -95,37 +91,29 @@ public class PostService {
             post.setCreatedAt(LocalDateTime.now());
         }
         post.setUpdatedAt(LocalDateTime.now());
-        postRepository.save(post);
-        return "redirect:/";
+        return postRepository.save(post);
     }
-    public String getPostForEdit(Integer id, Model model) {
+    public Model getPostForEdit(Integer id, Model model) {
 
         // find post by id
         Optional<Post> optionalPost = postRepository.findById(id);
         // if post exist put it in model
         if (optionalPost.isPresent()) {
             Post post = optionalPost.get();
-            model.addAttribute("post", post);
-            return "post_edit";
-        } else {
-            return "404";
-        }
+           return model.addAttribute("post", post);
+        }else throw new NoSuchElementException("No such post is found");
     }
     public List<Post> getAll() {
         return postRepository.findAll();
     }
 
-    public String deletePost(@PathVariable Integer id) {
+    public void deletePost(@PathVariable Integer id) {
 
         // find post by id
         Optional<Post> optionalPost = postRepository.findById(id);
         if (optionalPost.isPresent()) {
             Post post = optionalPost.get();
-
             postRepository.delete(post);
-            return "redirect:/";
-        } else {
-            return "404";
         }
     }
 
